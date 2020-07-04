@@ -226,7 +226,7 @@ textarea {
   cursor: pointer;
   border: none !important;
 }
-.link-wrapper, .img-wrapper {
+.link-wrapper, .img-loader {
   position: absolute;
   background-color: #ece9e9;
   display: block;
@@ -235,8 +235,12 @@ textarea {
   border: 1px solid tan;
   padding: 7px;
 }
-.link-wrapper input, .img-wrapper input {max-width: 88%;}
-.link-wrapper button, .img-wrapper button {margin-bottom: 0;}
+.link-wrapper input, .img-loader input {max-width: 88%;}
+.link-wrapper button, .img-loader button {margin-bottom: 0;}
+#images-wrapper {display: none;}
+.img-single-wrapper {}
+.img-single-wrapper img {}
+.img-single-wrapper img:last-child {}
 /*--------------------------*/
 
 /*--------------------------*/

@@ -1,12 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, Fragment, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBold, faCode, faItalic, faUnderline, faStrikethrough, faSuperscript, faSubscript, faFont, faTint, faListUl, faListOl, faAlignLeft, faAlignCenter, faAlignRight, faAlignJustify, faLink, faUnlink, faImage } from '@fortawesome/free-solid-svg-icons'
 
-export const ExampleComponent = ({ text }) => {
+export const ExampleComponent = (props) => {
+  const { api, controlled, imgField } = props;
+
   const [fontclrVisible, setFontclrVisible] = useState(false);
   const [backclrVisible, setBackclrVisible] = useState(false);
   const [linkVisible, setLinkVisible] = useState(false);
   const [imgVisible, setImgVisible] = useState(false);
+  const [images, setImages] = useState([]);
+  const [loaderVisible, setLoaderVisible] = useState(false);
+
+  useEffect(() => {
+    !images.length && fetch(api)
+      .then(res => res.json())
+      .then(json => setImages(json));
+  });
 
   const switchToHTML = () => {
     let editor = document.getElementById('editor');
@@ -195,8 +205,21 @@ export const ExampleComponent = ({ text }) => {
           <div id="insertimg">
             <FontAwesomeIcon icon={faImage} onClick={() => setImgVisible(!imgVisible)} />
             {imgVisible && (
-              <div id="img-wrapper" className="img-wrapper">
-                <input id="imgvalue" type="text" />
+              <div id="img-loader" className="img-loader">
+                {!controlled ? <input id="imgvalue" type="text" /> : (
+                  <Fragment>
+                    <input id="imgvalue" type="text" onClick={() => setLoaderVisible(true)} />
+                    {loaderVisible && (
+                      <div id="images-wrapper">
+                        {images.map(item => (
+                          <div className="img-single-wrapper">
+                            <img src={item[imgField]} alt="" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Fragment>
+                )}
                 <button id="setimg">OK</button>
               </div>
             )}
