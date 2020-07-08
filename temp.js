@@ -11,13 +11,20 @@ export const ExampleComponent = (props) => {
   const [imgVisible, setImgVisible] = useState(false);
   const [images, setImages] = useState([]);
   const [loaderVisible, setLoaderVisible] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
+
+  // useEffect(() => {
+  //   fetch(api)
+  //     .then(res => res.json())
+  //     .then(json => setImages(json));
+  // },[]);
 
   const loader = () => {
-    fetch(api)
-      .then(res => res.json())
-      .then(json => setImages(json));
-    setLoaderVisible(true);
+    if (!loaderVisible) {
+      fetch(api)
+        .then(res => res.json())
+        .then(json => setImages(json));
+    }
+    setLoaderVisible(!loaderVisible);
   }
 
   const switchToHTML = () => {
@@ -64,7 +71,6 @@ export const ExampleComponent = (props) => {
   }
   const formatter = (arg1, arg2, arg3) => {
     var range, sel;
-    document.getElementById('editor').focus();
     if (window.getSelection) {
       // Non-IE case
       sel = window.getSelection();
@@ -85,7 +91,6 @@ export const ExampleComponent = (props) => {
       range = document.selection.createRange();
       range.execCommand(arg1, arg2, arg3);
     }
-    // console.log(document.activeElement.id);
   }
   const fontSize = e => {
     if (window.getSelection) {
@@ -108,7 +113,7 @@ export const ExampleComponent = (props) => {
     }
   }
   return (
-    <div style={{ margin: '25px 150px' }} id="editor-wrapper">
+    <div id="editor-wrapper">
       <div id="tools">
         <span className="tools-group">
           <FontAwesomeIcon id='code' icon={faCode} onClick={() => switchToHTML()} />
@@ -209,34 +214,21 @@ export const ExampleComponent = (props) => {
           <div id="insertimg">
             <FontAwesomeIcon icon={faImage} onClick={() => setImgVisible(!imgVisible)} />
             {imgVisible && (
-              <div id="img-loader" className="img-loader" focusable="false">
-                {!controlled ? <input type="text" /> : (
+              <div id="img-loader" className="img-loader">
+                {!controlled ? <input id="imgvalue" type="text" /> : (
                   <Fragment>
-                    <img alt="" src={imageSrc ? rootUrl + imageSrc : require('./picture.png')} onClick={() => loader()} style={{ cursor: 'pointer' }} />
+                    <input id="imgvalue" type="text" onClick={() => loader()} />
                     {loaderVisible && (
                       <div className='dark' onClick={() => {
                         setLoaderVisible(false);
+                        setImgVisible(!imgVisible);
                       }}>
-                        <ImagesWrapper
-                          rootUrl={rootUrl}
-                          images={images}
-                          upload={upload}
-                          api={api}
-                          refetch={() => loader()}
-                          cancelLoader={() => {
-                            setLoaderVisible(false);
-                          }}
-                          handleSelect={arg => setImageSrc(arg)}
-                        />
+                        <ImagesWrapper rootUrl={rootUrl} images={images} upload={upload} />
                       </div>
                     )}
                   </Fragment>
                 )}
-                <button
-                  id="setimg"
-                  className='tools-btn'
-                  onClick={() => formatter('insertImage', false, rootUrl + imageSrc)}
-                >OK</button>
+                <button id="setimg" className='tools-btn'>OK</button>
               </div>
             )}
           </div>
@@ -247,63 +239,36 @@ export const ExampleComponent = (props) => {
   );
 };
 
-const ImagesWrapper = ({ rootUrl, images, upload, api, refetch, cancelLoader, handleSelect }) => {
-  const [selectedImage, selectImage] = useState('');
+const ImagesWrapper = ({ rootUrl, images, upload }) => {
   useEffect(() => {
     document.getElementById('images-wrapper').classList.add('images-wrapper-visible');
     return () => {
       document.getElementById('images-wrapper').classList.remove('images-wrapper-visible');
     };
   }, []);
-  const fileUpload = useRef(null);
-  const getPhoto = async () => {
-    let uploadfile = document.getElementById("upload_doc").files[0];
-    let data = new FormData();
-    data.append("file", uploadfile, uploadfile.name);
-    console.log(uploadfile);
-    await fetch(api, {
-      method: 'POST',
-      body: data
-    })
-      .then(() => refetch());
-  }
+  // const fileUpload = useRef(null);
   return (
     <div id="images-wrapper" onClick={e => {
+      e.preventDefault();
       e.stopPropagation();
     }}>
       <section id='images-content'>
         {images.map(item => (
           <div className="img-single-wrapper">
-            <img src={rootUrl + item} alt="" onClick={e => {
-              const imagesToSelect = document.querySelectorAll('.img-single-wrapper');
-              for (let x = 0; x < imagesToSelect.length; x++) {
-                imagesToSelect[x].querySelector('img').classList.remove('selected');
-              }
-              e.target.classList.add('selected');
-              selectImage(item);
-            }} />
+            <img src={rootUrl + item} alt="" />
           </div>
         ))}
       </section>
       <section id='images-controls'>
-        <button className='xbutton' onClick={() => {
-          handleSelect(selectedImage);
-          cancelLoader();
-        }}>OK</button>
+        <button className='xbutton'>OK</button>
         {upload && <button
           className='xbutton'
-          onClick={() => fileUpload.current.click()}
+        // onClick={()=>fileUpload.current.click()}
         >Upload</button>}
-        <button className='xbutton' onClick={() => cancelLoader()}>Cancel</button>
-        <input
-          type='file'
-          ref={fileUpload}
-          style={{ display: 'none' }}
-          id="upload_doc"
-          onChange={() => getPhoto()}
-        />
+        <button className='xbutton'>Cancel</button>
+        {/* <input type='file' ref={fileUpload} /> */}
+        <h1>jhkgjhgkjhgkjhgjh</h1>
       </section>
     </div>
   );
 };
-
