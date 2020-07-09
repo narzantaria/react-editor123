@@ -319,6 +319,20 @@ textarea {
   overflow: hidden;
 }
 #imgvalue::after {} */
+#resizer {
+  position: absolute;
+  padding: 10px;
+  background-color: #fff;
+  max-width: 250px;
+}
+#resizer label {}
+#resizer input {
+	width: 98.8%;
+	margin: 10px 0;
+	border: 1px solid #888;
+	height: 27px;
+}
+#resizer button {}
 /*--------------------------*/
 
 /*--------------------------*/

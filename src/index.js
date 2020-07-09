@@ -12,12 +12,33 @@ export const ExampleComponent = (props) => {
   const [images, setImages] = useState([]);
   const [loaderVisible, setLoaderVisible] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
+  const [resizer, setresizer] = useState({
+    img: '',
+    top: 0,
+    left: 0,
+    visible: false
+  });
+  let [imgId, setImgId] = useState(0);
 
   const loader = () => {
     fetch(api)
       .then(res => res.json())
       .then(json => setImages(json));
     setLoaderVisible(true);
+  }
+
+  const rightBtn = e => {
+    if (e.target.tagName == 'IMG' && e.button == '2') {
+      e.preventDefault();
+      setImgId(++imgId);
+      e.target.id = imgId;
+      setresizer({
+        img: e.target.id,
+        visible: true,
+        top: e.clientY,
+        left: e.clientX
+      });
+    }
   }
 
   const switchToHTML = () => {
@@ -71,7 +92,6 @@ export const ExampleComponent = (props) => {
       if (sel.getRangeAt) {
         range = sel.getRangeAt(0);
       }
-      // console.log(range);
       document.designMode = "on";
       if (range) {
         sel.removeAllRanges();
@@ -85,7 +105,6 @@ export const ExampleComponent = (props) => {
       range = document.selection.createRange();
       range.execCommand(arg1, arg2, arg3);
     }
-    // console.log(document.activeElement.id);
   }
   const fontSize = e => {
     if (window.getSelection) {
@@ -108,7 +127,7 @@ export const ExampleComponent = (props) => {
     }
   }
   return (
-    <div style={{ margin: '25px 150px' }} id="editor-wrapper">
+    <div id="editor-wrapper">
       <div id="tools">
         <span className="tools-group">
           <FontAwesomeIcon id='code' icon={faCode} onClick={() => switchToHTML()} />
@@ -210,7 +229,7 @@ export const ExampleComponent = (props) => {
             <FontAwesomeIcon icon={faImage} onClick={() => setImgVisible(!imgVisible)} />
             {imgVisible && (
               <div id="img-loader" className="img-loader" focusable="false">
-                {!controlled ? <input type="text" /> : (
+                {!controlled ? <input type="text" value={imageSrc} onChange={e => setImageSrc(e.target.value)} /> : (
                   <Fragment>
                     <img alt="" src={imageSrc ? rootUrl + imageSrc : require('./picture.png')} onClick={() => loader()} style={{ cursor: 'pointer' }} />
                     {loaderVisible && (
@@ -235,14 +254,39 @@ export const ExampleComponent = (props) => {
                 <button
                   id="setimg"
                   className='tools-btn'
-                  onClick={() => formatter('insertImage', false, rootUrl + imageSrc)}
+                  onClick={() => {
+                    if(controlled) {
+                      formatter('insertImage', false, rootUrl + imageSrc)
+                    } else {
+                      formatter('insertImage', false, imageSrc)
+                    }
+                  }}
                 >OK</button>
               </div>
             )}
           </div>
         </span>
       </div>
-      <div id="editor" contentEditable={true}>I am Shutruk Nahunte, King of Anšan and Susa, Sovereign of the land of Elam. By command of Inshushinak I destroyed Sippar, Took the Stele of Niran-Sin, and brought it back to Elam, where I erected it as an offering to my god.</div>
+      <div
+        id="editor"
+        onContextMenu={e => rightBtn(e)}
+        onClick={() => {
+          setresizer({
+            visible: false,
+            top: 0,
+            left: 0
+          });
+        }}
+        contentEditable={true}
+      >I am Shutruk Nahunte, King of Anšan and Susa, Sovereign of the land of Elam. By command of Inshushinak I destroyed Sippar, Took the Stele of Niran-Sin, and brought it back to Elam, where I erected it as an offering to my god.</div>
+      {resizer.visible && <ImageResizer top={resizer.top} left={resizer.left} callBack={arg => {
+        setresizer({
+          visible: false,
+          top: 0,
+          left: 0
+        });
+        document.getElementById(imgId).style.width = arg + 'px';
+      }} />}
     </div>
   );
 };
@@ -260,7 +304,6 @@ const ImagesWrapper = ({ rootUrl, images, upload, api, refetch, cancelLoader, ha
     let uploadfile = document.getElementById("upload_doc").files[0];
     let data = new FormData();
     data.append("file", uploadfile, uploadfile.name);
-    console.log(uploadfile);
     await fetch(api, {
       method: 'POST',
       body: data
@@ -303,6 +346,17 @@ const ImagesWrapper = ({ rootUrl, images, upload, api, refetch, cancelLoader, ha
           onChange={() => getPhoto()}
         />
       </section>
+    </div>
+  );
+};
+
+const ImageResizer = ({ top, left, callBack }) => {
+  const [width, setWidth] = useState(null);
+  return (
+    <div id='resizer' style={{ top: top + 'px', left: left + 'px' }}>
+      <label for='imgwidth'>Image width:</label>
+      <input type="text" id='imgwidth' value={width} onChange={e => setWidth(e.target.value)} />
+      <button className='xbutton' onClick={() => callBack(width)}>OK</button>
     </div>
   );
 };
